@@ -1,0 +1,161 @@
+def calculate_average(id : str) -> float :
+    sum_ = 0
+    count = 0
+    for student in students :
+        if student['id'] == id :
+            for score in student['scores'].values() :
+                sum_ += score
+                count += 1
+    return sum_ / count if count > 0 else 0
+
+def classification (id : str) -> str :
+    score_list = []
+    for student in students :
+        if student['id'] == id :
+            score_list.extend(student['scores'].values())
+    avg = calculate_average(id)
+    if avg >= 8 and len([x for x in score_list if x < 5]) == 0  :
+        return "Excellent"
+    elif avg >= 6.5 and len([x for x in score_list if x < 5]) == 0 :
+        return "Good"
+    elif avg >= 5.0 and len([x for x in score_list if x < 5]) == 0 :
+        return "Pass"
+    else :
+        return "Fail"
+def add_avg_classfication() -> None :
+    for student in students :
+        student['average'] = calculate_average(student['id'])
+        student['classification'] = classification(student['id'])
+def print1 () -> None :
+    for student in students :
+        print(f"{student['id']} | {student['name']} | {student['average']:.2f} | {student['classification']}")
+
+def project_Ai_qualify () -> list :
+    qualified_students = []
+    for student in students :
+        if student['scores']['python'] >= 7.0 and student['average'] >= 6.5 and student['attendance'] >= 80 :
+            qualified_students.append(student)
+    for student in qualified_students :
+        swapped = False
+        for i in range (len(qualified_students) - 1) :
+            if qualified_students[i]['average'] < qualified_students[i + 1]['average'] :
+                qualified_students[i], qualified_students[i + 1] = qualified_students[i + 1], qualified_students[i]
+                swapped = True
+    return qualified_students
+
+def find_student (id : str) -> dict :
+    for student in students :
+        if student['id'] == id :
+            return student
+    return None
+
+def tong_hop_sinh_vien() -> dict :
+    danh_sach_bang_cap = {"Excellent": 0, "Good": 0, "Pass": 0, "Fail": 0}
+    for student in students :
+        danh_sach_bang_cap[student['classification']] += 1
+    return danh_sach_bang_cap
+
+def avg_subject() -> list :
+    help_student = []
+    min_avg_subject = ''
+    avg_score = {}
+    subjects = list(students[0]['scores'].keys())
+    for subject in subjects :
+        total_score = sum(student['scores'][subject] for student in students)
+        avg_score[subject] = total_score / len(students)
+    min_avg_subject = min(avg_score, key = avg_score.get)
+    for student in students :
+        if student['scores'][min_avg_subject] < avg_score[min_avg_subject] :
+            help_student.append(student)
+    return help_student
+def update_status(id: str, subject : str, new_score = 11) -> None :
+    for student in students :
+        if student['id'] == id :
+            for sub1 in student['scores'] : 
+                if sub1 == subject :
+                    if new_score >= 0 and new_score <= 10 :
+                        student['scores'][subject] = new_score
+                        print(f"Successfully update student {id}")
+                        return
+                    print(f"Score {new_score} Error")
+                    return
+            print(f"Subject {subject} not found")
+            return
+    print(f"Student ID {id} not found")
+def ranked () -> None :
+    rank = 1
+    count = 0
+    for i in range(len(students)) :
+        swapped = False
+        for j in range(len(students) - 1) :
+            if students[j]['average'] < students[j + 1]['average'] :
+                students[j], students[j + 1] = students[j + 1], students[j]
+                swapped = True
+    current = students[0]['average']
+    students[0]["Rank"] = rank
+    for student in students[1::] :
+        if student['average'] < current :
+            rank = rank + 1 + count
+            count = 0
+            student["Rank"] = rank
+            current = student['average']
+        else :
+            count += 1
+            student["Rank"] = rank
+
+def main () -> None :
+    print()
+    add_avg_classfication()
+    print("Danh sach sinh vien:")
+    print1()
+    print()
+    print("Danh sach sinh vien du dieu kien du an AI:")
+    qualified_students = project_Ai_qualify()
+    for student in qualified_students :
+        print(f"{student['id']} | {student['name']} | {student['scores']['python']} | {student['average']:.2f} | {student['classification']} | {student['attendance']}")
+    danh_sach_bang_cap = tong_hop_sinh_vien()
+    print()
+    print("Tong hop sinh vien theo xep loai:")
+    for classification, count in danh_sach_bang_cap.items() :
+        print(f"{classification}: {count}", end = ' ')
+    print()
+    print()
+    print("Danh sach sinh vien can ho tro do diem trung binh mon thap nhat:")
+    help_students = avg_subject()
+    for student in help_students :
+        print(f"{student['id']} | {student['name']}")
+    update_status('SV002', 'python', 7.5)
+    update_status('SV001','biology')
+    update_status('SV999', 'math', 8.0)
+    update_status("SV003", "english", 12)
+    ranked()
+    for student in students :
+        print(f"{student['Rank']} | {student['id']} | {student['name']} | {student['average']:.2f} | {student['classification']}")
+
+students = [
+    {
+        "id": "SV001",
+        "name": "Nguyen Van An",
+        "scores": {"python": 8.5, "math": 7.0, "english": 6.5},
+        "attendance": 90
+    },
+    {
+        "id": "SV002",
+        "name": "Tran Thi Binh",
+        "scores": {"python": 4.0, "math": 5.5, "english": 7.5},
+        "attendance": 75
+    },
+    {
+        "id": "SV003",
+        "name": "Le Minh Chi",
+        "scores": {"python": 9.0, "math": 8.5, "english": 8.0},
+        "attendance": 95
+    },
+    {
+        "id": "SV004",
+        "name": "Pham Gia Dung",
+        "scores": {"python": 6.0, "math": 4.5, "english": 5.0},
+        "attendance": 80
+    }
+]
+main()
