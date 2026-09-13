@@ -1,0 +1,71 @@
+import csv
+def is_valid_score(value: str) -> bool:
+    try: 
+        float(value)
+        return True
+    except ValueError:
+        return False
+def check(row : dict) -> bool :
+    if is_valid_score(row['python']) and is_valid_score(row['math']) and is_valid_score(row['english']) and is_valid_score(row['attendance']):
+        if 0 <= float(row['python']) <= 10 and 0 <= float(row['math']) <= 10 and 0 <= float(row['english']) <= 10 and 0 <= float(row['attendance']) <= 100 :
+            return True
+    return False
+
+def average(student : dict) -> float :
+    return f'{(student["python"] + student["math"] + student["english"]) / 3:.2f}'
+
+def classification (student : dict) -> str :
+    avg = average(student)
+    if avg >= 8 and [x for x in [student['python'], student['math'], student['english']] if x < 5] == [] :
+        return 'Excellent'
+    elif avg >= 6.5 and [x for x in [student['python'], student['math'], student['english']] if x < 5] == [] :
+        return 'Good'
+    elif avg >= 5 and [x for x in [student['python'], student['math'], student['english']] if x < 5] == [] :
+        return 'Pass'
+    else :
+        return 'Fail'
+
+def qualified_student(student: dict) -> bool :
+    if student['python'] >= 7 and student['average'] >= 6.5 and student['attendance'] >= 80:
+            return True
+    return False
+
+student_list = {}
+invalid_list = {}
+
+with open(r'C:\Users\Admin\Downloads\students.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader :
+        if check(row):
+            student_list[row['name']]  = {'Id': row['id'], 'python': float(row['python']), 'math': float(row['math']), 'english': float(row['english']), 'attendance': float(row['attendance']), 'average': average({'python': float(row['python']), 'math': float(row['math']), 'english': float(row['english'])}), 'classification': classification({'python': float(row['python']), 'math': float(row['math']), 'english': float(row['english'])})}
+        else : 
+            if row['python'] == '' or row['math'] == '' or row['english'] == '' or row['attendance'] == '' :
+                invalid_list[row['name']] = {'Id': row['id'], 'python': row['python'], 'math': row['math'], 'english': row['english'], 'attendance': row['attendance'], "reason": "Missing Scores"} 
+            elif not is_valid_score(row['python']) or not is_valid_score(row['math']) or not is_valid_score(row['english']) or not is_valid_score(row['attendance']):
+                invalid_list[row['name']] = {'Id': row['id'], 'python': row['python'], 'math': row['math'], 'english': row['english'], 'attendance': row['attendance'], "reason": "Invalid Scores"}
+
+fieldname = ['id', 'name', 'average', 'classification']
+
+with open(r'C:\Users\Admin\Downloads\valid_students.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.DictWriter(f, fieldnames=fieldname)
+
+    writer.writeheader()
+    for student in student_list:
+        writer.writerow({'id': student_list[student]['Id'], 'name': student, 'average': student_list[student]['average'], 'classification': student_list[student]['classification']})
+
+fieldname = ['id', 'name', 'reason']
+with open(r'C:\Users\Admin\Downloads\invalid_students.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.DictWriter(f, fieldnames=fieldname)
+
+    writer.writeheader()
+    for student in invalid_list:
+        writer.writerow({'id': invalid_list[student]['Id'], 'name': student, 'reason': invalid_list[student]['reason']})
+
+fieldname = ['id', 'name']
+with open(r'C:\Users\Admin\Downloads\qualified_students.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.DictWriter(f, fieldnames=fieldname)
+
+    writer.writeheader()
+    for student in student_list:
+        if qualified_student(student_list[student]):
+            writer.writerow({'id': student_list[student]['Id'], 'name': student})
